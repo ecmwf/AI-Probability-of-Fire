@@ -16,9 +16,7 @@ You will not be able to reproduce the exact configuration run at ECMWF, as it us
 Data sources to train the PoF
 :::
     
-<div style="text-align:center; margin:40px 0; font-weight:bold;">
-    Weather Data
-</div>
+## Weather Data
 
 <a href="https://doi.org/10.1175/JAMC-D-15-0297.1" target="_blank">
 In fuel-rich environments, weather is the dominant control of fire behaviour.</a>
@@ -35,11 +33,7 @@ Finally, __wind speed__ is the most dynamic and often the most dangerous factor.
 
 Together, these __four variables__  describe the conditions under which fires can ignite and spread. They provide a solid, intuitive foundation for understanding landscape flammability and are a suitable starting point for anyone beginning their PoF modelling journey. They also provide a data-driven alternative to the Fire Weather Index.
 
----
-
-<div style="text-align:center; margin:40px 0; font-weight:bold;">
-    Fuel Data
-</div>
+## Fuel Data
 
 <a href="https://doi.org/10.1038/s41467-025-58097-7" target="_blank">
 In absence of any other source, fuel is the most important control globally on fire activity.</a>
@@ -55,11 +49,9 @@ We estimate fuel load by combining Satellite-derived Above-Ground Biomass (AGB) 
 
 This approach allows us to reconstruct daily biomass evolution at ~9 km resolution. AGB is then partitioned into live and dead components using vegetation-type-specific ratios and leaf area index. This gives a dynamic estimate of foliage and wood fuel loads, consistent with fire-modelling practices.
 
-<a href="https://doi.org/10.5194/bg-21-279-2024" target="_blank"> __Fuel moisture__ </a>  represents the total mass of biomass with respect to water. It is usually divided in the moisture of the linving plant and the moisture in dead biomass 
+### Live Fuel Moisture Content
 
-__Live Fuel Moisture Content (LFMC)__
-
-💦🍃 LFMC expresses how much water is contained in living vegetation relative to its dry mass. It determines how easily plants ignite and how fast a fire can spread.
+Live Fuel Moisture Content [LFMC](https://doi.org/10.5194/bg-21-279-2024) expresses how much water is contained in living vegetation relative to its dry mass. It determines how easily plants ignite and how fast a fire can spread.
 We use a semi-empirical model, trained on the <a href="https://doi.org/10.1038/s41597-019-0164-9" target="_blank"> Globe-LFMC in-situ dataset</a>, to estimate daily LFMC from:
 
 🌿 **Leaf Area Index (LAI)**
@@ -70,42 +62,33 @@ We use a semi-empirical model, trained on the <a href="https://doi.org/10.1038/s
 
 The model ensures physically realistic moisture ranges and captures seasonal vegetation responses to drought and growth cycles.
 
-<a href="https://doi.org/10.5194/bg-21-279-2024" target="_blank"> __Dead Fuel Moisture Content (DFMC)__ </a>
+### Dead Fuel Moisture Content
 
-DFMC describes the moisture content of dead leaves, litter, and woody debris—fuels that respond directly to weather.
+Dead Fuel Moisture Content ([DFMC](https://doi.org/10.5194/bg-21-279-2024)) describes the moisture content of dead leaves, litter, and woody debris—fuels that respond directly to weather.
 We generalize the <a href="https://doi.org/10.1139/x00-032" target="_blank">Nelson (2000)</a> physical model to estimate DFMC for standard dead-fuel classes (1h, 10h, 100h, 1000h). Short-lag fuels (1h, 10h), which represent dead foliage, respond to fast humidity changes. Long-lag fuels (100h, 1000h), which represent dead wood, respond to multi-day weather patterns. DFMC for foliage and wood is derived by weighting appropriate fuel classes based on vegetation type.
 
----
+## Sources of Ignitions
 
-<div style="text-align:center; margin:40px 0; font-weight:bold;">
-    Sources of Ignitions
-</div>
-
-**Road Density**
+### Road Density
 
 Roads facilitate human access to wildland areas, increasing the likelihood of ignitions through activities such as agriculture, forestry, and recreation. However, they may also contribute to fire suppression efficiency and serve as firebreaks, creating a complex relationship between road density and fire outcomes.
 
 The <a href="https://doi.org/10.1088/1748-9326/aabd42" target="_blank"> Global Roads Inventory Project (GRIP) dataset</a>, which provides a global map of road networks at ~8 km resolution, has been regridded for use here.
 
-**Population Density**
+### Population Density
 
 Around 90% of wildfires are human‑ignited, making human presence a useful indicator of potential fire occurrence. Fire incidence generally rises with population density but eventually saturates and at very high densities, suppression efforts typically limit the potential for large wildfires.
 
 The data provided here are derived from the <a href="https://doi.org/10.7927/H49C6VHW" target="_blank"> Gridded Population of the World, Version 4 (GPWv4) dataset</a>, which provides gridded population estimates at ~1 km resolution in 5-year intervals from 2000 to 2020.
 
----
 
-<div style="text-align:center; margin:40px 0; font-weight:bold;">
-    Fire Data
-</div>
+## Fire Data
+
 
 Various sensors and fire products are available for use in a PoF-style system. Here we attempt a binary classifier model, that is an indication of the probability of a fire yes/no. As such we use hotspot detections rather than burned area.
 
 __Active fire (AF)__ detections were taken from the <a href="https://doi.org/10.1016/j.rse.2016.02.054" target="_blank"> MODIS MCD14ML product</a>, which provides daily fire hotspot locations based on thermal anomalies detected at 1 km resolution. These data were gridded to coarser daily resolution and represented as binary values (1 = at least one hotspot detected, 0 = none). We applied quality assurance flags to exclude low-confidence detections and removed spurious signals when possible.
 
-:::{important}
-  <h3 style="margin-top:0; color:#003e74;">🎯 Final result</h3>
-  <p style="margin:0; font-size:1.05em; color:#003e74;">
-    A set of environmental predictors and fire activity collocated dataset 
-  </p>
-</div>
+:::{important} 🎯 Final result
+  A set of environmental predictors and fire activity collocated dataset 
+:::

@@ -1,27 +1,7 @@
 ---
-title: 🔥 Probability of Fire Jupyter Book
-# subtitle: Reproducible notebooks for building local PoF models with your own data
+title: 🔥 Probability of Fire — In a Box
+subtitle: Reproducible notebooks for building local PoF models with your own data
 ---
-
-![logo](./images/ECMWF.png)
-
-<br>
-<!-- 
-<div style="
-    background: linear-gradient(90deg, #003e74 0%, #006bb3 100%);
-    padding: 35px 30px;
-    border-radius: 10px;
-    margin: 40px 0;
-    color: white;
-    text-align: center;
-">
-  <h1 style="margin:0; font-size: 2.5em; font-weight:600;">
-    🔥 Probability of Fire — Toolbox
-  </h1>
-  <p style="margin-top:10px; font-size:1.3em; opacity:0.95;">
-    Reproducible notebooks for building local PoF models with your own data
-  </p>
-</div>
 
 :::{figure} ./images/PoF-light.png
 :align: center
@@ -83,7 +63,7 @@ All this is before we even consider the factors that might start a wildfire in t
 These shortcomings highlight the need for more advanced forecasting techniques to accurately assess wildfire risk across diverse landscapes.
 ```
 
-# Machine learning evolution
+## Machine learning evolution
 
 In recent months, there has been a remarkable growth in the integration of machine learning into weather forecasting systems. **With the intricate dynamics governing wildfires, it seems only natural to explore similar applications of machine learning in fire forecasting.**
 

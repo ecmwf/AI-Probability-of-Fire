@@ -12,6 +12,7 @@ In this example, we generate predictions using forecast data as inputs. This is 
 ---
 
 ## Loading Data
+## Loading Data
 
 We begin by loading the previously trained model **POF_model.joblib**.
 
@@ -25,15 +26,14 @@ As with the training workflow, you must then load the required input data:
 
 ## Running the Prediction
 
-
 After constructing a dataframe that matches the structure used during training, you can run the model in probability mode to estimate the likelihood of fire occurrence (`1`) using: model.predict_proba(X_pred)
 
 
 ---
 
-## Saving Prediction as Grib
-__CHECK__
-The final step is to save your prediction as a Grib file for further analysis or visualisation.  
+## Saving Prediction as NetCDF
+
+The final step is to save your prediction as a NetCDF file for further analysis or visualisation.  
 In this example, metadata is not included, but you can add variable attributes, CRS information, or global metadata as required.
 
 Your output file should be named:

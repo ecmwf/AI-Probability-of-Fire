@@ -42,8 +42,8 @@ To model how vegetation influences wildfire behaviour, two key aspects must be c
 
 <a href="https://doi.org/10.5194/bg-21-279-2024" target="_blank"> __Fuel load__ </a> represents the total mass of above-ground biomass available to burn. It includes:
 
-🌿 Foliage (live and dead)
-🌳 Wood (live and dead)
+* 🌿 Foliage (live and dead)
+* 🌳 Wood (live and dead)
 
 We estimate fuel load by combining Satellite-derived Above-Ground Biomass (AGB) from ESA-CCI (2010 baseline), and Daily Net Ecosystem Exchange (NEE) from the ECLand land-surface model (forced by ERA5) with <a href="https://doi.org/10.5194/acp-16-10399-2016" target="_blank"> bias correction from atmospheric inversions. </a>
 
@@ -54,11 +54,9 @@ This approach allows us to reconstruct daily biomass evolution at ~9 km resoluti
 Live Fuel Moisture Content [LFMC](https://doi.org/10.5194/bg-21-279-2024) expresses how much water is contained in living vegetation relative to its dry mass. It determines how easily plants ignite and how fast a fire can spread.
 We use a semi-empirical model, trained on the <a href="https://doi.org/10.1038/s41597-019-0164-9" target="_blank"> Globe-LFMC in-situ dataset</a>, to estimate daily LFMC from:
 
-🌿 **Leaf Area Index (LAI)**
-
-💧 **Soil moisture (root-weighted)**
-
-🌳 **Vegetation type**
+* 🌿 **Leaf Area Index (LAI)**
+* 💧 **Soil moisture (root-weighted)**
+* 🌳 **Vegetation type**
 
 The model ensures physically realistic moisture ranges and captures seasonal vegetation responses to drought and growth cycles.
 

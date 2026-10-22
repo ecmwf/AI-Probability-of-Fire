@@ -7,6 +7,8 @@ dependencies:
 - xarray
 - netcdf4
 - cdsapi
+- ecmwf-opendata
+- cfgrib
 - cartopy
 - numpy
 - joblib

@@ -4,3 +4,4 @@ handbook/outputs
 **/.DS_Store
 # MyST build outputs
 _build
+**/__pycache__/

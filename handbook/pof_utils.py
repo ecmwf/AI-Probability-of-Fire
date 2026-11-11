@@ -132,6 +132,7 @@ def retrieve_era5_land_month(client, year, month, data_dir=DATA_DIR, keep_hourly
         }
 
     for shortname, variable in ERA5_LAND_VARIABLES.items():
+        print(f"Retrieving hourly {shortname} for {year}-{month:02d}")
         if not os.path.exists(hourly_paths[shortname]):
             request = era5_land_request(
                 variable, year, month, [f"{d:02d}" for d in range(1, 32)], [f"{h:02d}:00" for h in range(24)]

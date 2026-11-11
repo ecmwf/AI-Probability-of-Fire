@@ -12,21 +12,41 @@ project:
 
   toc:
     - file: index.md
-    - file: retrieving_data.md
-      title: Data Generator
+    - file: reanalysis.md
       children:
-        - file: POF_Data_Generator.ipynb
-    - file: training.md
+        - file: retrieving_data.md
+          title: Data Generator
+          children:
+            - file: POF_Data_Generator.ipynb
+        - file: training.md
+          children:
+            - file: POF_Trainer.ipynb
+        - file: forecasting.md
+          title: Forecasting
+          children:
+            - file: POF_Forecast.ipynb
+        - file: plotting.md
+          title: Plotting
+          children:
+            - file: POF_plotter.ipynb
+    - file: opendata.md
       children:
-        - file: POF_Trainer.ipynb
-    - file: forecasting.md
-      title: Forecasting
-      children:
-        - file: POF_Forecast.ipynb
-    - file: plotting.md
-      title: Plotting
-      children:
-        - file: POF_plotter.ipynb
+        - file: retrieving_opendata.md
+          title: Open Data Generator
+          children:
+            - file: POF_OpenData_Generator.ipynb
+        - file: training_opendata.md
+          children:
+            - file: POF_OpenData_Trainer.ipynb
+        - file: forecasting_opendata.md
+          title: Forecasting
+          children:
+            - file: POF_OpenData_Forecast.ipynb
+        - file: plotting_opendata.md
+          title: Plotting
+          children:
+            - file: POF_OpenData_plotter.ipynb
+       
     - file: end.md
       title: Conclusion
 

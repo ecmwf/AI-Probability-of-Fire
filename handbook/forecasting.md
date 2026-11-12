@@ -7,7 +7,7 @@ title: "Forecasting With PoF"
 
 Now that you have gathered your data and trained your model, you can use it for historical or future fire–occurrence predictions.
 
-In this example, we generate predictions for an entire month using historical inputs. This type of prediction is often referred to as an **analysis prediction**, because it relies on observation-based data. An alternative—mirroring how PoF is used operationally at ECMWF—is to use *forecast* inputs. These are typically short-range (up to ~10 days), but the same workflow can be extended to seasonal, annual, or even decadal predictions.
+In this example, we generate predictions using forecast data as inputs. This is similar to how PoF is used operationally at ECMWF to provide short-range (up to ~10 days), but the same workflow can be extended to seasonal, annual, or even decadal predictions.
 
 ---
 
@@ -31,11 +31,11 @@ After constructing a dataframe that matches the structure used during training, 
 
 ---
 
-## Saving Prediction as NetCDF
-
-The final step is to save your prediction as a NetCDF file for further analysis or visualisation.  
+## Saving Prediction as Grib
+__CHECK__
+The final step is to save your prediction as a Grib file for further analysis or visualisation.  
 In this example, metadata is not included, but you can add variable attributes, CRS information, or global metadata as required.
 
 Your output file should be named:
 
-**POF_prediction_YYYY_MM.nc**
+**POF_prediction_YYYY_MM.grib**

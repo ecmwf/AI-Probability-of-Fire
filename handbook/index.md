@@ -29,13 +29,32 @@ title: 🔥 Probability of Fire Jupyter Book
 POF Toolbox
 :::
 
-__PoF Toolbox provides a ready-to-run set of notebooks designed to help you get started with your own Predictability of Fire (PoF) experiments. It includes all the tools, data access, and workflows needed to explore fire activity prediction, from input preparation to model evaluation.__
-:::{note} Before you begin: Please note that the workflow presented here is not intended to reproduce the exact operational system currently running at ECMWF. Instead, it provides a simplified sequence of steps designed to help you get started.
-:::
 
-The notebook can only be used with past forecasts—it will generate a tool that allows you to explore and analyse previous forecast data.
-That said, we believe this provides a valuable starting point: a complete, working system built entirely from data that are publicly available through the Climate Data Store (CDS) or accessible via temporary data repositories linked within this notebook. 
+__The Probability of Fire (PoF) Toolbox provides a collection of notebooks, datasets and workflows to help users explore, reconstruct and run a PoF model.__
 
+Developed around the machine-learning framework used at ECMWF, the toolbox provides two complementary approaches to working with PoF. Whether you want to investigate historical fire predictions or build a workflow to generate predictions using current data, the notebooks provide a practical starting point.
+
+Two ways to work with PoF
+
+1. Historical PoF reconstruction
+
+Explore how PoF would have performed over previous years using historical environmental conditions.
+
+This workflow combines ERA5 reanalysis data, satellite-informed land-surface information and historical fuel datasets to reconstruct the input conditions required by PoF. By applying the model to these historical conditions, users can generate spatially and temporally consistent estimates of fire probability.
+
+2. Real-time PoF forecasting
+
+Build and run a PoF workflow using openly available datasets.
+
+This workflow provides a template for preparing the required input data and running PoF with current environmental conditions. It brings together the data preparation and modelling steps needed to generate fire probability predictions, providing a starting point for users interested in developing their own operational or near-real-time applications.
+
+Unlike the historical reconstruction workflow, this approach is designed around the availability of current input data rather than retrospective reanalysis. It therefore provides a foundation for experimenting with real-time fire prediction using openly accessible data sources.
+
+# Getting started
+
+Both workflows are designed to make the PoF framework more accessible, providing practical examples of how the model can be applied beyond its implementation at ECMWF.
+
+The notebooks guide users through the relevant data preparation, model execution and analysis steps. They are intended to be adaptable, allowing users to explore the framework, experiment with alternative datasets and develop their own applications.
 
 # Wildfire prediction  
 

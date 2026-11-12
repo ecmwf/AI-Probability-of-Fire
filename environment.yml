@@ -20,6 +20,5 @@ dependencies:
 - cftime
 - pip
 - python=3.14
+- earthkit-data
 - ecmwf-opendata
-- cfgrib
-- eccodes

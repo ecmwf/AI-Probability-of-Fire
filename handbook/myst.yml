@@ -38,19 +38,6 @@ project:
           children:
             - file: POF_Forecast_Plotter.ipynb
 
-
-      #children:
-      #  - file: POF_OpenData_Generator.ipynb
-      #  - file: training_opendata.md
-      #    children:
-      #      - file: POF_OpenData_Trainer.ipynb
-      #  - file: forecasting_opendata.md
-      #    children:
-      #      - file: POF_OpenData_Forecast.ipynb
-      #  - file: plotting_opendata.md
-      #    children:
-      #      - file: POF_OpenData_plotter.ipynb
-
     - file: end.md                          # "Conclusion"
       title: Conclusion
 

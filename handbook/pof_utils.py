@@ -19,15 +19,7 @@ import numpy as np
 import pandas as pd
 import requests
 import xarray as xr
-from eccodes import (
-    codes_clone,
-    codes_grib_new_from_file,
-    codes_grib_new_from_samples,
-    codes_release,
-    codes_set,
-    codes_set_values,
-    codes_write,
-)
+import earthkit.data as ekd
 
 DATA_DIR = "data"
 
@@ -53,8 +45,8 @@ PARAM_IDS = {
     "DFMC_10h": 7,
     "DFMC_100h": 8,
     "DFMC_1000h": 9,
-    # WMO fire detection indicator, code table 4.223: 0 no fire, 1 possible, 2 probable, 3 missing
-    "ACTIVE_FIRE": {"discipline": 3, "parameterCategory": 0, "parameterNumber": 9},
+    # ECMWF local active-fire parameter (paramId 210097).
+    "ACTIVE_FIRE": {"discipline": 192, "parameterCategory": 210, "parameterNumber": 97},
     "ws": 11,
     "rh": 12,
     "t2m": 13,
@@ -165,7 +157,7 @@ def retrieve_era5_land_month(client, year, month, data_dir=DATA_DIR, keep_hourly
 
 
 def hourly_positions(variable):
-    """(valid time, isel index) for every hourly slot of a cfgrib field, whatever its time/step layout."""
+    """(valid time, isel index) for every hourly slot, whatever its time/step layout."""
     dims = [dim for dim in variable.dims if dim not in SPATIAL_DIMS]
     valid_time = variable.valid_time.transpose(*dims).values
     for position in np.ndindex(valid_time.shape):
@@ -193,7 +185,7 @@ def daily_mean(func, *variables, year, month):
         total, count = 0.0, 0
         for index in indexes:
             hour = [np.asarray(v.isel(index).values, dtype=float) for v in variables]
-            # cfgrib pads time/step combinations that are not in the file with NaN
+            # Missing time/step combinations are represented as NaN.
             if not np.isfinite(hour[0]).any():
                 continue
             total, count = total + func(*hour), count + 1
@@ -214,7 +206,7 @@ def daily_precipitation(*variables, year, month):
             day = (valid - pd.Timedelta(days=1)).normalize()
             if valid.hour == 0 and day.year == year and day.month == month:
                 total = np.asarray(variable.isel(index).values, dtype=float)
-                if np.isfinite(total).any():  # skip cfgrib padding
+                if np.isfinite(total).any():
                     totals[day] = total / 24
     return daily_array(totals, variables[0])
 
@@ -225,7 +217,7 @@ def to_training_grid(variable):
 
 
 def forecast_daily_means(t2m, d2m, u10, v10, tp, run_date, forecast_days):
-    """Daily means over 00-21 UTC of forecast days 1..N from 3-hourly Open Data, on the training grid.
+    """Daily means over forecast days 1..N from 3/6-hourly Open Data, on the training grid.
 
     tp is accumulated from the start of the run, so it is de-accumulated over the
     calendar day (00 to 24 UTC) into a mean hourly amount, matching daily_precipitation.
@@ -235,13 +227,19 @@ def forecast_daily_means(t2m, d2m, u10, v10, tp, run_date, forecast_days):
     def at(variable, hours):
         return np.asarray(variable.sel(step=np.timedelta64(hours, "h")).values, dtype=float)
 
+    available_steps = sorted(int(pd.Timedelta(step) / pd.Timedelta(hours=1)) for step in t2m.step.values)
     fields = {name: [] for name in ("t2m", "tp", "rh", "ws")}
     for day in range(1, forecast_days + 1):
-        steps = [24 * day + 3 * j for j in range(8)]
+        steps = [step for step in available_steps if 24 * day <= step < 24 * (day + 1)]
+        if not steps:
+            raise ValueError(f"No forecast fields available for day {day}")
+        end_step = 24 * (day + 1)
+        if end_step not in available_steps:
+            raise ValueError(f"No precipitation accumulation endpoint at step {end_step}")
         fields["t2m"].append(np.mean([at(t2m, s) for s in steps], axis=0))
         fields["rh"].append(np.mean([relative_humidity(at(t2m, s), at(d2m, s)) for s in steps], axis=0))
         fields["ws"].append(np.mean([wind_speed(at(u10, s), at(v10, s)) for s in steps], axis=0))
-        fields["tp"].append(np.maximum(at(tp, 24 * (day + 1)) - at(tp, 24 * day), 0.0) / 24)
+        fields["tp"].append(np.maximum(at(tp, end_step) - at(tp, 24 * day), 0.0) / 24)
 
     times = [np.datetime64(run_date + datetime.timedelta(days=day)) for day in range(1, forecast_days + 1)]
     return xr.Dataset(
@@ -288,7 +286,7 @@ def retrieve_xds_month_to_grib(client, year, month, data_dir=DATA_DIR):
 ############################################################
 
 def grib_filter(name):
-    """cfgrib filter_by_keys for a variable in PARAM_IDS."""
+    """GRIB metadata keys for a variable in PARAM_IDS."""
     parameter = PARAM_IDS[name]
     if isinstance(parameter, dict):
         return dict(parameter)
@@ -296,12 +294,25 @@ def grib_filter(name):
 
 
 def open_grib(path, filters=None, decode_times=True):
-    return xr.open_dataset(
-        path,
-        engine="cfgrib",
+    fields = ekd.from_source("file", os.fspath(path)).to_fieldlist()
+    if filters:
+        fields = fields.sel({f"metadata.{key}": value for key, value in filters.items()})
+    if not len(fields):
+        raise ValueError(f"No GRIB fields in {path} match filters {filters or {}}")
+
+    dataset = fields.to_xarray(
+        engine="earthkit",
         decode_times=decode_times,
-        backend_kwargs={"indexpath": "", "filter_by_keys": filters or {}},
+        time_dims=["forecast_reference_time", "step"],
+        squeeze=False,
+        rename_dims={"forecast_reference_time": "time"},
+        add_valid_time_coord=True,
+        allow_holes=True,
     )
+    singleton_dims = [
+        dim for dim, size in dataset.sizes.items() if size == 1 and dim not in SPATIAL_DIMS
+    ]
+    return dataset.squeeze(dim=singleton_dims, drop=True) if singleton_dims else dataset
 
 
 def read_grib(path, filters=None, variable_name=None, decode_times=True, select=None):
@@ -319,7 +330,11 @@ def first_variable(dataset):
 
 
 def time_dim(variable):
-    return next(dim for dim in variable.dims if dim not in SPATIAL_DIMS)
+    dims = [dim for dim in variable.dims if dim not in SPATIAL_DIMS]
+    for dim in ("time", "step"):
+        if dim in dims and variable.sizes[dim] > 1:
+            return dim
+    return dims[0]
 
 
 def field_at(variable, index):
@@ -360,62 +375,63 @@ def write_grib_dataset(ds, path, parameter_ids, valid_date, template_path=None):
         raise ValueError("GRIB output currently requires a regular latitude/longitude grid")
 
     output_date = datetime.datetime.strptime(valid_date, "%Y%m%d")
-    template_handle = None
-    template_file = None
+    template = "regular_ll_sfc_grib2"
     if template_path and os.path.exists(template_path):
-        template_file = open(template_path, "rb")
-        template_handle = codes_grib_new_from_file(template_file)
-        if template_handle is None:
-            template_file.close()
+        templates = ekd.from_source("file", template_path).to_fieldlist()
+        if not len(templates):
             raise ValueError(f"No GRIB messages found in {template_path}")
+        template = templates[0]
+        if template.shape != (len(lat), len(lon)):
+            raise ValueError(f"Template grid {template.shape} does not match output grid {(len(lat), len(lon))}")
 
-    try:
-        with open(path, "wb") as output_file:
-            for variable_name, variable in ds.data_vars.items():
-                field = variable.transpose(
-                    *(tuple(dim for dim in ("time", lat_name, lon_name) if dim in variable.dims))
-                ).values
-                if "time" not in variable.dims:
-                    field = field[np.newaxis, ...]
-                for index, values in enumerate(field):
-                    field_date = output_date + datetime.timedelta(days=index)
-                    handle = codes_clone(template_handle) if template_handle is not None else codes_grib_new_from_samples("regular_ll_sfc_grib2")
-                    if template_handle is None:
-                        codes_set(handle, "gridType", "regular_ll")
-                        codes_set(handle, "Ni", len(lon))
-                        codes_set(handle, "Nj", len(lat))
-                        codes_set(handle, "latitudeOfFirstGridPointInDegrees", float(lat[0]))
-                        codes_set(handle, "longitudeOfFirstGridPointInDegrees", float(lon[0]))
-                        codes_set(handle, "latitudeOfLastGridPointInDegrees", float(lat[-1]))
-                        codes_set(handle, "longitudeOfLastGridPointInDegrees", float(lon[-1]))
-                        codes_set(handle, "iDirectionIncrementInDegrees", float(lon_step))
-                        codes_set(handle, "jDirectionIncrementInDegrees", float(lat_step))
-                        codes_set(handle, "iScansNegatively", int(lon[-1] < lon[0]))
-                        codes_set(handle, "jScansPositively", int(lat[-1] > lat[0]))
-                    parameter = parameter_ids[variable_name]
-                    if isinstance(parameter, dict):
-                        for key, value in parameter.items():
-                            codes_set(handle, key, value)
-                    else:
-                        codes_set(handle, "discipline", 0)
-                        codes_set(handle, "parameterCategory", 191)
-                        codes_set(handle, "parameterNumber", parameter)
-                    codes_set(handle, "dataDate", int(field_date.strftime("%Y%m%d")))
-                    codes_set(handle, "dataTime", 0)
-                    codes_set(handle, "forecastTime", 0)
-                    values = np.asarray(values, dtype=float)
-                    missing = ~np.isfinite(values)
-                    if missing.any():
-                        codes_set(handle, "bitmapPresent", 1)
-                        codes_set(handle, "missingValue", 9.999e20)
-                        values = np.where(missing, 9.999e20, values)
-                    codes_set_values(handle, values.ravel())
-                    codes_write(handle, output_file)
-                    codes_release(handle)
-    finally:
-        if template_handle is not None:
-            codes_release(template_handle)
-            template_file.close()
+    encoder = ekd.create_encoder("grib")
+    with open(path, "wb") as output_file:
+        for variable_name, variable in ds.data_vars.items():
+            time_dims = [dim for dim in variable.dims if dim not in SPATIAL_DIMS]
+            if len(time_dims) > 1:
+                raise ValueError(f"GRIB output supports at most one time dimension, found {time_dims}")
+            if time_dims:
+                field = variable.transpose(time_dims[0], lat_name, lon_name).values
+            else:
+                field = variable.transpose(lat_name, lon_name).values[np.newaxis, ...]
+
+            parameter = parameter_ids[variable_name]
+            parameter_metadata = (
+                dict(parameter)
+                if isinstance(parameter, dict)
+                else {"discipline": 0, "parameterCategory": 191, "parameterNumber": parameter}
+            )
+            grid_metadata = {}
+            if isinstance(template, str):
+                grid_metadata = {
+                    "gridType": "regular_ll",
+                    "Ni": len(lon),
+                    "Nj": len(lat),
+                    "latitudeOfFirstGridPointInDegrees": float(lat[0]),
+                    "longitudeOfFirstGridPointInDegrees": float(lon[0]),
+                    "latitudeOfLastGridPointInDegrees": float(lat[-1]),
+                    "longitudeOfLastGridPointInDegrees": float(lon[-1]),
+                    "iDirectionIncrementInDegrees": float(lon_step),
+                    "jDirectionIncrementInDegrees": float(lat_step),
+                    "iScansNegatively": int(lon[-1] < lon[0]),
+                    "jScansPositively": int(lat[-1] > lat[0]),
+                    "bitsPerValue": 24,
+                }
+
+            for index, values in enumerate(field):
+                field_date = output_date + datetime.timedelta(days=index)
+                metadata = parameter_metadata | grid_metadata | {
+                    "dataDate": int(field_date.strftime("%Y%m%d")),
+                    "dataTime": 0,
+                    "forecastTime": 0,
+                }
+                encoded = encoder.encode(
+                    values=np.asarray(values, dtype=float),
+                    template=template,
+                    metadata=metadata,
+                    missing_value=9999.0,
+                )
+                encoded.to_file(output_file)
 
 
 ############################################################
@@ -440,9 +456,9 @@ def wind_speed(u10, v10):
 # TRAINING DATA
 ############################################################
 
-# Column -> (file name pattern, cfgrib filter)
+# Column -> (file name pattern, GRIB metadata filter)
 TRAINING_INPUTS = {
-    "AF": ("ACTIVE_FIRE_MAP_{stem}.grib2", grib_filter("ACTIVE_FIRE")),
+    "AF": ("ACTIVE_FIRE_MAP_{stem}_R.grib2", grib_filter("ACTIVE_FIRE")),
     "PR": ("P_{stem}.grib2", grib_filter("tp")),
     "T2": ("T2M_{stem}.grib2", grib_filter("t2m")),
     "RH": ("RH_{stem}.grib2", grib_filter("rh")),

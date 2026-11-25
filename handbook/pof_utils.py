@@ -449,7 +449,7 @@ def relative_humidity(t2m, d2m):
 
 def wind_speed(u10, v10):
     # Squared wind speed (no square root): the trained model expects this feature.
-    return np.sqrt(u10**2 + v10**2)
+    return np.hypot(u10, v10)
 
 
 ############################################################

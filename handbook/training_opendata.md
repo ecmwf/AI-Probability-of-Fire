@@ -9,7 +9,7 @@ PoF uses XGBoost, a powerful gradient-boosted decision-tree algorithm widely app
 
 The training procedure follows a simple, reproducible workflow based on a probabilistic classifier:
 
-### Prepare the training dataset 
+## Prepare the training dataset
 
 You will assemble a table where each row represents a gridcell in space and time (daily & 9km grid) and includes:
 
@@ -27,20 +27,21 @@ You will assemble a table where each row represents a gridcell in space and time
 
 The data generation script should have synthesised your data into a DataFrame stored in a Parquet file, which is now ready for training.
 
-### Split the data
+## Split the data
 
 ---
 
-##### Dataset Splits
-
-- **Training set** → used to fit the model
-- **Test set** → final skill evaluation
-
----
+<div style="text-align:center; margin:40px 0; font-weight:bold;">
+  <strong>Dataset Splits</strong><br>
+  <ul style="margin:8px 0 0 15px;">
+    <li><strong>Training set</strong> → used to fit the model</li>
+    <li><strong>Test set</strong> → final skill evaluation</li>
+  </ul>
+</div>
 
 We typically use a random stratified split.
 
-### Define the XGBoost model
+## Define the XGBoost model
 
 We configure the key XGBoost Hyperparameters:
 
@@ -53,7 +54,7 @@ We configure the key XGBoost Hyperparameters:
 
 You will need to adjust these parameters depending on your region and data volume.
 
-### Generate PoF predictions
+## Generate PoF predictions
 
 Once trained, the model outputs a probability between 0 and 1 representing the likelihood that at least one fire will occur under the given conditions withing a gridcell on a given day.
 
@@ -61,7 +62,7 @@ These are the core PoF predictions you will visualise and evaluate.
 
 ---
 
-### Evaluate the model 
+## Evaluate the model
 
 We can assess the model skill using tools such as:
 - ROC curve
@@ -77,7 +78,6 @@ The script saves the trained model for reuse (POF_model.joblib) . Later versions
 
 ---
 
-### 🎯 Final result
-
-A trained, validated XGBoost model providing daily probability-of-fire estimates
-from environmental predictors
+:::{important} 🎯 Final result
+   A trained, validated XGBoost model providing daily probability-of-fire estimates
+  from environmental predictors
